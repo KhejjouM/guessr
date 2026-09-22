@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guessr</title>
+<style>
+  :root {
+    --bg: #12111f;
+    --bg2: #1c1a2e;
+    --card: #242138;
+    --card2: #2e2a48;
+    --accent: #6cf542;
+    --accent2: #f5c542;
+    --danger: #f54263;
+    --premium: #c084fc;
+    --text: #f2f0ff;
+    --muted: #9b96b8;
+    --radius: 16px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg2), var(--bg));
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+  }
+  .screen { display: none; width: 100%; max-width: 940px; padding: 16px 24px; margin: auto; }
+  .screen.active { display: block; }
+  .logo {
+    font-size: 52px; font-weight: 900; letter-spacing: -2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tagline { color: var(--muted); font-size: 16px; margin: 6px 0 28px; }
+
+  /* ---------- AUTH ---------- */
+  .auth-box {
+    background: var(--card); border-radius: var(--radius); padding: 28px;
+    max-width: 380px; margin: 0 auto;
+  }
+  .auth-box h2 { margin-bottom: 18px; font-size: 20px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+  .field input {
+    width: 100%; padding: 11px 14px; border-radius: 10px; border: 2px solid var(--card2);
+    background: var(--bg2); color: var(--text); font-size: 15px; font-family: inherit; outline: none;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .auth-error { color: var(--danger); font-size: 13px; min-height: 18px; margin-bottom: 8px; }
+  .btn {
+    background: linear-gradient(90deg, var(--accent), #4ad42a); color: #0c1606;
+    border: none; border-radius: 999px; padding: 11px 28px; font-size: 15px;
+    font-weight: 800; cursor: pointer; font-family: inherit; transition: transform .15s;
+  }
+  .btn:hover { transform: scale(1.04); }
+  .btn.secondary { background: var(--card2); color: var(--text); }
+  .btn.premium-btn { background: linear-gradient(90deg, var(--premium), #9333ea); color: #fff; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+  /* ---------- HOME ---------- */
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .user-chip {
+    background: var(--card); border-radius: 999px; padding: 8px 16px; font-size: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .user-chip b { color: var(--accent2); }
+  .user-chip .prem { color: var(--premium); font-weight: 700; }
+  .logout { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; font-family: inherit; text-decoration: underline; }
+  .themes { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .theme-card {
+    background: var(--card); border-radius: var(--radius); padding: 22px;
+    cursor: pointer; border: 2px solid transparent; transition: all .2s;
+    display: flex; align-items: center; gap: 18px; text-align: left;
+  }
+  .theme-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .theme-card.premium:hover { border-color: var(--premium); }
+  .theme-emoji { font-size: 42px; }
+  .theme-name { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .theme-desc { color: var(--muted); font-size: 13px; margin-top: 3px; }
+  .badge { font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 999px; }
+  .badge.free { background: #1d4620; color: var(--accent); }
+  .badge.locked { background: #3b2a55; color: var(--premium); }
+  .badge.owned { background: #3b2a55; color: var(--premium); }
+
+  /* ---------- GAME ---------- */
+  .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
+  .hud-item { background: var(--card); border-radius: 12px; padding: 8px 16px; font-weight: 700; }
+  .hud-item span { color: var(--muted); font-weight: 500; font-size: 11px; display: block; }
+  #timer-value { color: var(--accent2); font-variant-numeric: tabular-nums; }
+  #timer-value.low { color: var(--danger); animation: pulse .5s infinite alternate; }
+  @keyframes pulse { to { opacity: .4; } }
+  #points-preview { color: var(--accent); font-variant-numeric: tabular-nums; }
+  .photo-frame {
+    border-radius: var(--radius); overflow: hidden; position: relative;
+    height: clamp(180px, 38vh, 400px); background: #000; margin-bottom: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  .photo-frame img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform .3s linear, filter .3s linear;
+  }
+  .timebar { position: absolute; bottom: 0; left: 0; height: 6px; width: 100%; background: var(--accent); transform-origin: left; }
+
+  .guess-row { display: flex; gap: 10px; margin-bottom: 12px; }
+  .guess-row input {
+    flex: 1; padding: 12px 16px; border-radius: 12px; border: 2px solid var(--card2);
+    background: var(--card); color: var(--text); font-size: 16px; font-family: inherit; outline: none;
+  }
+  .guess-row input:focus { border-color: var(--accent); }
+  .guess-row input.shake { animation: shake .35s; border-color: var(--danger); }
+  @keyframes shake { 20%,60% { transform: translateX(-7px);} 40%,80% { transform: translateX(7px);} }
+  .guess-hint { color: var(--muted); font-size: 12px; margin: -6px 0 10px; text-align: center; }
+  .guess-hint b { color: var(--accent2); }
+  .penalty-pop { color: var(--danger); font-weight: 800; }
+
+  .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .choices.hidden-choices { display: none; }
+  .choice {
+    background: var(--card); border: 2px solid transparent; color: var(--text);
+    border-radius: 12px; padding: 11px 10px; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all .15s; font-family: inherit; text-align: center;
+  }
+  .choice:hover:not(:disabled) { border-color: var(--accent); transform: translateY(-2px); }
+  .choice:disabled { cursor: default; }
+  .choice.correct { background: #1d4620; border-color: var(--accent); }
+  .choice.wrong { background: #461d28; border-color: var(--danger); }
+  .choice.dim { opacity: .35; }
+
+  .round-result { text-align: center; margin-top: 10px; min-height: 56px; }
+  .round-result .pts { font-size: 24px; font-weight: 900; color: var(--accent); }
+  .round-result .pts.zero { color: var(--danger); }
+  .round-result .label { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .next-btn {
+    background: linear-gradient(90deg, var(--accent), #4ad42a); color: #0c1606;
+    border: none; border-radius: 999px; padding: 9px 34px; font-size: 16px;
+    font-weight: 800; cursor: pointer; margin-top: 8px; font-family: inherit; transition: transform .15s;
+  }
+  .next-btn:hover { transform: scale(1.05); }
+  .quit { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; font-family: inherit; text-decoration: underline; }
+
+  /* ---------- END ---------- */
+  .end { text-align: center; }
+  .final-score { font-size: 64px; font-weight: 900; color: var(--accent2); margin: 6px 0; font-variant-numeric: tabular-nums; }
+  .final-max { color: var(--muted); margin-bottom: 4px; }
+  .new-record { color: var(--accent); font-weight: 800; font-size: 18px; margin-bottom: 10px; }
+  .recap { max-width: 480px; margin: 16px auto; text-align: left; }
+  .recap-row { display: flex; justify-content: space-between; align-items: center; background: var(--card); border-radius: 10px; padding: 8px 14px; margin-bottom: 7px; }
+  .recap-row .name { font-weight: 700; font-size: 14px; }
+  .recap-row .rpts { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--accent); }
+  .recap-row .rpts.zero { color: var(--danger); }
+  .recap-row img { width: 52px; height: 38px; object-fit: cover; border-radius: 6px; margin-right: 12px; }
+  .recap-left { display: flex; align-items: center; }
+
+  /* ---------- PAYWALL MODAL ---------- */
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(8,6,18,.8);
+    align-items: center; justify-content: center; z-index: 50; padding: 20px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--card); border-radius: var(--radius); padding: 26px;
+    width: 100%; max-width: 400px; border: 1px solid var(--card2);
+    max-height: 92vh; overflow-y: auto;
+  }
+  .modal h2 { font-size: 22px; margin-bottom: 4px; }
+  .modal .price { color: var(--premium); font-size: 30px; font-weight: 900; margin: 8px 0 2px; }
+  .modal .price small { font-size: 14px; color: var(--muted); font-weight: 500; }
+  .demo-note {
+    background: #3b2a55; color: var(--premium); font-size: 12px; font-weight: 700;
+    border-radius: 8px; padding: 8px 12px; margin: 12px 0;
+  }
+  .perks { color: var(--muted); font-size: 13px; margin: 10px 0 16px; line-height: 1.7; }
+  .card-row { display: flex; gap: 10px; }
+  .card-row .field { flex: 1; }
+  .pay-error { color: var(--danger); font-size: 13px; min-height: 18px; margin: 4px 0; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+
+  @media (max-width: 700px) {
+    .logo { font-size: 36px; }
+    .themes { grid-template-columns: 1fr; }
+    .choices { grid-template-columns: 1fr 1fr; }
+    .photo-frame { height: 240px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH ============ -->
+<div class="screen active" id="screen-auth" style="text-align:center">
+  <div class="logo">GUESSR</div>
+  <div class="tagline">Sneakers · Moto · Montre · Voiture — devine vite, score gros.</div>
+  <div class="auth-box" style="text-align:left">
+    <h2>Connexion</h2>
+    <div class="field">
+      <label for="auth-user">Pseudo</label>
+      <input id="auth-user" autocomplete="off" maxlength="20">
+    </div>
+    <div class="field">
+      <label for="auth-pass">Mot de passe</label>
+      <input id="auth-pass" type="password" maxlength="64">
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn" onclick="login()">Se connecter</button>
+      <button class="btn secondary" onclick="signup()">Créer un compte</button>
+    </div>
+    <div style="color:var(--muted);font-size:11px;margin-top:14px">
+      Démo locale : les comptes sont stockés dans ton navigateur, rien ne part sur internet.
+    </div>
+  </div>
+</div>
+
+<!-- ============ HOME ============ -->
+<div class="screen" id="screen-home">
+  <div class="topbar">
+    <div class="logo" style="font-size:34px">GUESSR</div>
+    <div class="user-chip">
+      <span>👤 <b id="chip-user"></b> <span class="prem" id="chip-prem"></span></span>
+      <button class="logout" onclick="logout()">déconnexion</button>
+    </div>
+  </div>
+  <div class="tagline">Choisis un thème. La photo se dévoile — tape ta réponse avant l'apparition des choix pour scorer plus. 🔥</div>
+  <div class="themes" id="themes"></div>
+</div>
+
+<!-- ============ GAME ============ -->
+<div class="screen" id="screen-game">
+  <div class="hud">
+    <div class="hud-item"><span id="hud-theme">Thème</span><div id="round-label">1 / 5</div></div>
+    <div class="hud-item"><span>Points en jeu</span><div id="points-preview">5000</div></div>
+    <div class="hud-item"><span>Temps</span><div id="timer-value">15.0</div></div>
+    <div class="hud-item"><span>Score</span><div id="score-value">0</div></div>
+    <button class="quit" onclick="goHome()">quitter</button>
+  </div>
+  <div class="photo-frame">
+    <img id="photo" src="" alt="Photo mystère">
+    <div class="timebar" id="timebar"></div>
+  </div>
+  <div class="guess-row" id="guess-row">
+    <input id="guess-input" placeholder="Tape ta réponse… (ex : nom du modèle)" autocomplete="off">
+    <button class="btn" onclick="submitTyped()">Valider</button>
+  </div>
+  <div class="guess-hint" id="guess-hint"></div>
+  <div class="choices hidden-choices" id="choices"></div>
+  <div class="round-result" id="round-result"></div>
+</div>
+
+<!-- ============ END ============ -->
+<div class="screen end" id="screen-end">
+  <div class="tagline" style="margin-bottom:0">Partie terminée — <span id="end-theme"></span></div>
+  <div class="final-score" id="final-score">0</div>
+  <div class="final-max">sur 25 000 points</div>
+  <div class="new-record" id="new-record" style="display:none">🏆 Nouveau record !</div>
+  <div class="recap" id="recap"></div>
+  <button class="btn" onclick="startGame(game.themeId)">Rejouer</button>
+  <button class="btn secondary" onclick="goHome()">Menu</button>
+</div>
+
+<!-- ============ PAYWALL ============ -->
+<div class="modal-backdrop" id="paywall">
+  <div class="modal">
+    <h2>✨ Guessr Premium</h2>
+    <div class="price">4,99 € <small>/ mois</small></div>
+    <div class="demo-note">🧪 DÉMO — paiement fictif. Aucune carte réelle n'est débitée, rien n'est envoyé sur internet. N'entre PAS de vraie carte bancaire.</div>
+    <div class="perks">
+      🏍️ Thème Moto — 12 légendes à deviner<br>
+      ⌚ Thème Montre — de la F-91W à la Nautilus<br>
+      🚗 Thème Voiture — de la 2CV à la Chiron
+    </div>
+    <div class="field">
+      <label for="pay-name">Nom sur la carte</label>
+      <input id="pay-name" autocomplete="off" placeholder="JEAN SNEAKER">
+    </div>
+    <div class="field">
+      <label for="pay-card">Numéro de carte (fictif)</label>
+      <input id="pay-card" autocomplete="off" inputmode="numeric" placeholder="4242 4242 4242 4242" maxlength="23">
+    </div>
+    <div class="card-row">
+      <div class="field">
+        <label for="pay-exp">Expiration (MM/AA)</label>
+        <input id="pay-exp" autocomplete="off" placeholder="12/28" maxlength="5">
+      </div>
+      <div class="field">
+        <label for="pay-cvc">CVC</label>
+        <input id="pay-cvc" autocomplete="off" inputmode="numeric" placeholder="123" maxlength="4">
+      </div>
+    </div>
+    <div class="pay-error" id="pay-error"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closePaywall()">Annuler</button>
+      <button class="btn premium-btn" onclick="pay()">S'abonner (démo)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================
+   DONNÉES
+===================================================== */
+const THEMES = {
+  sneakers: {
+    name: "Sneakers", emoji: "👟", premium: false,
+    items: [
+      { id:"air_jordan_1",    name:"Air Jordan 1",          brand:"Nike",       aliases:["jordan1","aj1","airjordan1","jordanone","jordan1high"] },
+      { id:"air_jordan_4",    name:"Air Jordan 4",          brand:"Nike",       aliases:["jordan4","aj4","airjordan4"] },
+      { id:"air_force_1",     name:"Nike Air Force 1",      brand:"Nike",       aliases:["airforce1","af1","airforceone"] },
+      { id:"nike_dunk",       name:"Nike SB Dunk Low",      brand:"Nike",       aliases:["dunk","sbdunk","dunklow","nikedunk"] },
+      { id:"air_max_1",       name:"Nike Air Max 1",        brand:"Nike",       aliases:["airmax1","am1"] },
+      { id:"air_max_90",      name:"Nike Air Max 90",       brand:"Nike",       aliases:["airmax90","am90"] },
+      { id:"air_max_97",      name:"Nike Air Max 97",       brand:"Nike",       aliases:["airmax97","am97","silverbullet"] },
+      { id:"nike_cortez",     name:"Nike Cortez",           brand:"Nike",       aliases:["cortez"] },
+      { id:"nike_blazer",     name:"Nike Blazer",           brand:"Nike",       aliases:["blazer","blazermid"] },
+      { id:"chuck_taylor",    name:"Converse Chuck Taylor", brand:"Converse",   aliases:["chucktaylor","chuck","allstar","converseallstar"] },
+      { id:"adidas_superstar",name:"Adidas Superstar",      brand:"Adidas",     aliases:["superstar","shelltoe"] },
+      { id:"stan_smith",      name:"Adidas Stan Smith",     brand:"Adidas",     aliases:["stansmith"] },
+      { id:"adidas_samba",    name:"Adidas Samba",          brand:"Adidas",     aliases:["samba"] },
+      { id:"yeezy_350",       name:"Yeezy Boost 350 V2",    brand:"Adidas",     aliases:["yeezy","yeezy350","boost350","yeezyboost"] },
+      { id:"vans_old_skool",  name:"Vans Old Skool",        brand:"Vans",       aliases:["oldskool","oldschool","vans"] },
+      { id:"new_balance_574", name:"New Balance 574",       brand:"New Balance",aliases:["574","nb574","newbalance574"] },
+      { id:"puma_suede",      name:"Puma Suede",            brand:"Puma",       aliases:["suede","pumasuede"] },
+      { id:"reebok_classic",  name:"Reebok Classic",        brand:"Reebok",     aliases:["reebokclassic","classicleather","freestyle","reebok"] },
+      { id:"asics_gel_lyte",  name:"Asics Gel-Lyte III",    brand:"Asics",      aliases:["gellyte","gellyte3","gellyteiii","asics"] },
+    ]
+  },
+  moto: {
+    name: "Moto", emoji: "🏍️", premium: true,
+    items: [
+      { id:"harley_fatboy",     name:"Harley-Davidson Fat Boy", brand:"Harley-Davidson", aliases:["fatboy","harley","harleydavidson"] },
+      { id:"ducati_panigale",   name:"Ducati Panigale",         brand:"Ducati",   aliases:["panigale","ducati"] },
+      { id:"kawasaki_ninja",    name:"Kawasaki Ninja",          brand:"Kawasaki", aliases:["ninja","kawasaki","zx6r"] },
+      { id:"honda_goldwing",    name:"Honda Gold Wing",         brand:"Honda",    aliases:["goldwing","gold wing"] },
+      { id:"yamaha_r1",         name:"Yamaha YZF-R1",           brand:"Yamaha",   aliases:["r1","yzfr1","yamahar1"] },
+      { id:"bmw_gs",            name:"BMW R 1200 GS",           brand:"BMW",      aliases:["gs","r1200gs","bmwgs","1200gs"] },
+      { id:"triumph_bonneville",name:"Triumph Bonneville",      brand:"Triumph",  aliases:["bonneville","triumph","bonnie"] },
+      { id:"vespa",             name:"Vespa",                   brand:"Piaggio",  aliases:["vespa","piaggio"] },
+      { id:"ktm_duke",          name:"KTM Duke",                brand:"KTM",      aliases:["duke","ktm","390duke"] },
+      { id:"suzuki_hayabusa",   name:"Suzuki Hayabusa",         brand:"Suzuki",   aliases:["hayabusa","busa","gsx1300r"] },
+      { id:"royal_enfield",     name:"Royal Enfield Bullet",    brand:"Royal Enfield", aliases:["royalenfield","bullet","enfield"] },
+      { id:"indian_chief",      name:"Indian Chief",            brand:"Indian",   aliases:["indian","indianchief","chief"] },
+    ]
+  },
+  montre: {
+    name: "Montre", emoji: "⌚", premium: true,
+    items: [
+      { id:"rolex_submariner", name:"Rolex Submariner",        brand:"Rolex",    aliases:["submariner","sub","rolexsub"] },
+      { id:"rolex_daytona",    name:"Rolex Daytona",           brand:"Rolex",    aliases:["daytona","cosmograph"] },
+      { id:"omega_speedmaster",name:"Omega Speedmaster",       brand:"Omega",    aliases:["speedmaster","speedy","moonwatch"] },
+      { id:"omega_seamaster",  name:"Omega Seamaster",         brand:"Omega",    aliases:["seamaster"] },
+      { id:"royal_oak",        name:"AP Royal Oak Offshore",   brand:"Audemars Piguet", aliases:["royaloak","offshore","audemars","ap","royaloakoffshore"] },
+      { id:"patek_nautilus",   name:"Patek Philippe Nautilus", brand:"Patek Philippe", aliases:["nautilus","patek","patekphilippe"] },
+      { id:"cartier_tank",     name:"Cartier Tank",            brand:"Cartier",  aliases:["tank","cartier","cartiertank"] },
+      { id:"casio_f91w",       name:"Casio F-91W",             brand:"Casio",    aliases:["f91w","f91","casiof91"] },
+      { id:"gshock",           name:"Casio G-Shock",           brand:"Casio",    aliases:["gshock","ga100"] },
+      { id:"apple_watch",      name:"Apple Watch",             brand:"Apple",    aliases:["applewatch","watchsport","iwatch"] },
+      { id:"swatch",           name:"Swatch",                  brand:"Swatch",   aliases:["swatch"] },
+      { id:"tag_monaco",       name:"TAG Heuer Monaco",        brand:"TAG Heuer",aliases:["monaco","tagheuer","heuer","tagmonaco"] },
+    ]
+  },
+  voiture: {
+    name: "Voiture", emoji: "🚗", premium: true,
+    items: [
+      { id:"porsche_911",   name:"Porsche 911",            brand:"Porsche",  aliases:["911","porsche","carrera","porsche911"] },
+      { id:"ferrari_f40",   name:"Ferrari F40",            brand:"Ferrari",  aliases:["f40","ferrarif40"] },
+      { id:"lambo_countach",name:"Lamborghini Countach",   brand:"Lamborghini", aliases:["countach","lamborghini","lambo"] },
+      { id:"citroen_2cv",   name:"Citroën 2CV",            brand:"Citroën",  aliases:["2cv","deuche","deudeuche","citroen2cv"] },
+      { id:"vw_beetle",     name:"VW New Beetle",          brand:"Volkswagen", aliases:["beetle","newbeetle","coccinelle","cox"] },
+      { id:"mini_cooper",   name:"Mini Cooper",            brand:"Mini",     aliases:["mini","cooper","minicooper"] },
+      { id:"tesla_model_s", name:"Tesla Model S",          brand:"Tesla",    aliases:["models","tesla","teslamodels"] },
+      { id:"ford_mustang",  name:"Ford Mustang",           brand:"Ford",     aliases:["mustang","fordmustang"] },
+      { id:"peugeot_205",   name:"Peugeot 205 GTI",        brand:"Peugeot",  aliases:["205","205gti","peugeot205"] },
+      { id:"mercedes_300sl",name:"Mercedes 300 SL",        brand:"Mercedes", aliases:["300sl","gullwing","papillon","mercedes300sl"] },
+      { id:"delorean",      name:"DeLorean DMC-12",        brand:"DeLorean", aliases:["delorean","dmc12"] },
+      { id:"bugatti_chiron",name:"Bugatti Chiron",         brand:"Bugatti",  aliases:["chiron","bugatti"] },
+    ]
+  }
+};
+
+const ROUNDS = 5;
+const ROUND_TIME = 15;         // secondes
+const CHOICES_AT = 0.5;        // le QCM apparaît à 50% du temps
+const MAX_PTS = 5000;
+const MIN_PTS_CORRECT = 800;
+const REVEAL_TIME = 10;        // durée du dé-zoom
+const TYPO_PENALTY = 300;      // pénalité par essai tapé raté
+const N_CHOICES = 6;
+
+/* =====================================================
+   AUTH (démo locale — localStorage, pas un vrai système
+   d'authentification sécurisé)
+===================================================== */
+function usersDB() { try { return JSON.parse(localStorage.getItem("guessr_users") || "{}"); } catch { return {}; } }
+function saveUsers(db) { localStorage.setItem("guessr_users", JSON.stringify(db)); }
+function hash(s) { // hachage jouet pour la démo (PAS de la vraie sécurité)
+  let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+function currentUser() { return sessionStorage.getItem("guessr_session"); }
+function me() { return usersDB()[currentUser()]; }
+function saveMe(u) { const db = usersDB(); db[currentUser()] = u; saveUsers(db); }
+
+function authFields() {
+  const user = document.getElementById("auth-user").value.trim();
+  const pass = document.getElementById("auth-pass").value;
+  const err = document.getElementById("auth-error");
+  err.textContent = "";
+  if (user.length < 3) { err.textContent = "Pseudo : 3 caractères minimum."; return null; }
+  if (pass.length < 4) { err.textContent = "Mot de passe : 4 caractères minimum."; return null; }
+  return { user, pass, err };
+}
+function signup() {
+  const f = authFields(); if (!f) return;
+  const db = usersDB();
+  if (db[f.user]) { f.err.textContent = "Ce pseudo existe déjà — connecte-toi."; return; }
+  db[f.user] = { pass: hash(f.pass), premium: false, best: {} };
+  saveUsers(db);
+  sessionStorage.setItem("guessr_session", f.user);
+  goHome();
+}
+function login() {
+  const f = authFields(); if (!f) return;
+  const db = usersDB();
+  if (!db[f.user]) { f.err.textContent = "Compte inconnu — crée un compte."; return; }
+  if (db[f.user].pass !== hash(f.pass)) { f.err.textContent = "Mot de passe incorrect."; return; }
+  sessionStorage.setItem("guessr_session", f.user);
+  goHome();
+}
+function logout() {
+  sessionStorage.removeItem("guessr_session");
+  document.getElementById("auth-pass").value = "";
+  show("screen-auth");
+}
+
+/* =====================================================
+   NAVIGATION / HOME
+===================================================== */
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+function goHome() {
+  cancelAnimationFrame(rafId);
+  if (!currentUser()) { show("screen-auth"); return; }
+  renderHome();
+  show("screen-home");
+}
+function renderHome() {
+  const u = me();
+  document.getElementById("chip-user").textContent = currentUser();
+  document.getElementById("chip-prem").textContent = u.premium ? "· ✨ Premium" : "";
+  const wrap = document.getElementById("themes");
+  wrap.innerHTML = "";
+  Object.entries(THEMES).forEach(([tid, t]) => {
+    const locked = t.premium && !u.premium;
+    const best = u.best[tid];
+    const div = document.createElement("div");
+    div.className = "theme-card" + (t.premium ? " premium" : "");
+    div.innerHTML = `
+      <div class="theme-emoji">${t.emoji}</div>
+      <div style="flex:1">
+        <div class="theme-name">${t.name}
+          ${t.premium
+            ? (locked ? '<span class="badge locked">🔒 Premium</span>' : '<span class="badge owned">✨ Premium</span>')
+            : '<span class="badge free">Gratuit</span>'}
+        </div>
+        <div class="theme-desc">${t.items.length} modèles · ${best ? "record : " + best.toLocaleString("fr-FR") : "aucun record"}</div>
+      </div>`;
+    div.onclick = () => locked ? openPaywall() : startGame(tid);
+    wrap.appendChild(div);
+  });
+}
+
+/* =====================================================
+   PAYWALL (fictif)
+===================================================== */
+function openPaywall() {
+  document.getElementById("pay-error").textContent = "";
+  document.getElementById("paywall").classList.add("open");
+}
+function closePaywall() { document.getElementById("paywall").classList.remove("open"); }
+function pay() {
+  const name = document.getElementById("pay-name").value.trim();
+  const card = document.getElementById("pay-card").value.replace(/[\s-]/g, "");
+  const exp = document.getElementById("pay-exp").value.trim();
+  const cvc = document.getElementById("pay-cvc").value.trim();
+  const err = document.getElementById("pay-error");
+  err.textContent = "";
+  if (name.length < 2) { err.textContent = "Nom manquant."; return; }
+  if (!/^\d{13,19}$/.test(card)) { err.textContent = "Numéro de carte invalide (13 à 19 chiffres)."; return; }
+  const m = exp.match(/^(\d{2})\/(\d{2})$/);
+  if (!m || +m[1] < 1 || +m[1] > 12) { err.textContent = "Expiration au format MM/AA."; return; }
+  const now = new Date();
+  if (+("20" + m[2]) * 100 + +m[1] < now.getFullYear() * 100 + now.getMonth() + 1) { err.textContent = "Carte expirée."; return; }
+  if (!/^\d{3,4}$/.test(cvc)) { err.textContent = "CVC invalide."; return; }
+  // Paiement fictif accepté — aucun échange réseau.
+  const u = me(); u.premium = true; saveMe(u);
+  closePaywall();
+  renderHome();
+}
+
+/* =====================================================
+   JEU
+===================================================== */
+let game = null;
+let rafId = null;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function normalize(s) {
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
+}
+
+function startGame(themeId) {
+  const t = THEMES[themeId];
+  game = {
+    themeId,
+    order: shuffle(t.items).slice(0, ROUNDS),
+    round: 0,
+    score: 0,
+    results: [],
+  };
+  document.getElementById("hud-theme").textContent = t.emoji + " " + t.name;
+  show("screen-game");
+  startRound();
+}
+
+function makeChoices(answer, items) {
+  const sameBrand = shuffle(items.filter(s => s.id !== answer.id && s.brand === answer.brand));
+  const others = shuffle(items.filter(s => s.id !== answer.id && s.brand !== answer.brand));
+  const decoys = [...sameBrand, ...others].slice(0, N_CHOICES - 1);
+  return shuffle([answer, ...decoys]);
+}
+
+function imgPath(item) { return `images/${game.themeId}/${item.id}.jpg`; }
+
+function startRound() {
+  const s = game.order[game.round];
+  game.roundStart = performance.now();
+  game.answered = false;
+  game.penalty = 0;
+  game.choicesShown = false;
+
+  document.getElementById("round-label").textContent = `${game.round + 1} / ${ROUNDS}`;
+  document.getElementById("score-value").textContent = game.score.toLocaleString("fr-FR");
+  document.getElementById("round-result").innerHTML = "";
+  document.getElementById("guess-row").style.display = "flex";
+  const input = document.getElementById("guess-input");
+  input.value = ""; input.disabled = false;
+  setTimeout(() => input.focus(), 50);
+
+  const img = document.getElementById("photo");
+  img.src = imgPath(s);
+  img.style.transform = "scale(3.5)";
+  img.style.filter = "blur(7px) saturate(.5)";
+  img.style.transformOrigin = `${30 + Math.random() * 40}% ${35 + Math.random() * 30}%`;
+
+  const choicesEl = document.getElementById("choices");
+  choicesEl.classList.add("hidden-choices");
+  choicesEl.innerHTML = "";
+  makeChoices(s, THEMES[game.themeId].items).forEach(choice => {
+    const btn = document.createElement("button");
+    btn.className = "choice";
+    btn.textContent = choice.name;
+    btn.onclick = () => answerChoice(choice, btn);
+    choicesEl.appendChild(btn);
+  });
+
+  cancelAnimationFrame(rafId);
+  tick();
+}
+
+function tick() {
+  const elapsed = (performance.now() - game.roundStart) / 1000;
+  const remaining = Math.max(0, ROUND_TIME - elapsed);
+
+  const reveal = Math.min(1, elapsed / REVEAL_TIME);
+  const scale = 3.5 - 2.5 * reveal;
+  const blur = 7 * (1 - Math.min(1, elapsed / 4));
+  const img = document.getElementById("photo");
+  img.style.transform = `scale(${scale.toFixed(3)})`;
+  img.style.filter = `blur(${blur.toFixed(1)}px) saturate(${(0.5 + 0.5 * reveal).toFixed(2)})`;
+
+  const timerEl = document.getElementById("timer-value");
+  timerEl.textContent = remaining.toFixed(1);
+  timerEl.classList.toggle("low", remaining <= 5);
+  document.getElementById("points-preview").textContent = currentPoints(elapsed).toLocaleString("fr-FR");
+  document.getElementById("timebar").style.transform = `scaleX(${remaining / ROUND_TIME})`;
+
+  const choicesDelay = ROUND_TIME * CHOICES_AT;
+  if (!game.choicesShown) {
+    if (elapsed >= choicesDelay) {
+      game.choicesShown = true;
+      document.getElementById("choices").classList.remove("hidden-choices");
+      document.getElementById("guess-hint").innerHTML = "QCM disponible — mais tu peux toujours taper ta réponse.";
+    } else {
+      document.getElementById("guess-hint").innerHTML =
+        `Mode saisie libre — le QCM apparaît dans <b>${(choicesDelay - elapsed).toFixed(1)}s</b>` +
+        (game.penalty ? ` · <span class="penalty-pop">-${game.penalty} pts de pénalité</span>` : "");
+    }
+  } else if (game.penalty) {
+    document.getElementById("guess-hint").innerHTML = `<span class="penalty-pop">-${game.penalty} pts de pénalité</span>`;
+  }
+
+  if (remaining <= 0 && !game.answered) { timeoutRound(); return; }
+  if (!game.answered) rafId = requestAnimationFrame(tick);
+}
+
+function currentPoints(elapsed) {
+  const f = Math.max(0, 1 - elapsed / ROUND_TIME);
+  return Math.max(0, Math.round(MIN_PTS_CORRECT + (MAX_PTS - MIN_PTS_CORRECT) * f) - game.penalty);
+}
+
+function revealPhotoFully() {
+  const img = document.getElementById("photo");
+  img.style.transform = "scale(1)";
+  img.style.filter = "none";
+}
+
+function submitTyped() {
+  if (!game || game.answered) return;
+  const input = document.getElementById("guess-input");
+  const guess = normalize(input.value);
+  if (guess.length < 2) return;
+  const s = game.order[game.round];
+  const targets = [normalize(s.name), ...s.aliases.map(normalize)];
+  if (targets.includes(guess)) {
+    finishRound(true, "typed");
+  } else {
+    game.penalty += TYPO_PENALTY;
+    input.classList.remove("shake"); void input.offsetWidth; input.classList.add("shake");
+    input.select();
+  }
+}
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && document.getElementById("screen-game").classList.contains("active")
+      && document.activeElement === document.getElementById("guess-input")) {
+    submitTyped();
+  }
+});
+
+function answerChoice(choice, btn) {
+  if (game.answered) return;
+  const s = game.order[game.round];
+  const correct = choice.id === s.id;
+  markChoices(btn);
+  finishRound(correct, "choice");
+}
+
+function markChoices(clickedBtn) {
+  const s = game.order[game.round];
+  document.querySelectorAll(".choice").forEach(b => {
+    b.disabled = true;
+    if (b.textContent === s.name) b.classList.add("correct");
+    else if (b === clickedBtn) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+}
+
+function finishRound(correct, mode) {
+  game.answered = true;
+  cancelAnimationFrame(rafId);
+  const s = game.order[game.round];
+  const elapsed = (performance.now() - game.roundStart) / 1000;
+  const pts = correct ? currentPoints(elapsed) : 0;
+  game.score += pts;
+  game.results.push({ item: s, pts, time: elapsed, correct, mode });
+
+  // figer l'UI
+  document.getElementById("guess-input").disabled = true;
+  const choicesEl = document.getElementById("choices");
+  choicesEl.classList.remove("hidden-choices");
+  if (mode !== "choice") markChoices(null);
+  revealPhotoFully();
+  document.getElementById("guess-hint").innerHTML = "";
+  document.getElementById("score-value").textContent = game.score.toLocaleString("fr-FR");
+
+  const label = correct
+    ? (mode === "typed" ? `Trouvé à la saisie en ${elapsed.toFixed(1)}s 🎯` : `Bien joué ! Répondu en ${elapsed.toFixed(1)}s`)
+    : `Raté… c'était « ${s.name} »`;
+  showRoundResult(label, pts);
+}
+
+function timeoutRound() {
+  game.answered = true;
+  const s = game.order[game.round];
+  game.results.push({ item: s, pts: 0, time: ROUND_TIME, correct: false, mode: "timeout" });
+  document.getElementById("guess-input").disabled = true;
+  document.getElementById("choices").classList.remove("hidden-choices");
+  markChoices(null);
+  revealPhotoFully();
+  document.getElementById("guess-hint").innerHTML = "";
+  showRoundResult(`Temps écoulé ! C'était « ${s.name} »`, 0);
+}
+
+function showRoundResult(label, pts) {
+  const last = game.round === ROUNDS - 1;
+  document.getElementById("round-result").innerHTML = `
+    <div class="pts ${pts === 0 ? "zero" : ""}">${pts > 0 ? "+" : ""}${pts.toLocaleString("fr-FR")} pts</div>
+    <div class="label">${label}</div>
+    <button class="next-btn" onclick="nextRound()">${last ? "Voir le score final" : "Manche suivante →"}</button>
+  `;
+  document.querySelector(".next-btn").focus();
+}
+
+function nextRound() {
+  game.round++;
+  if (game.round >= ROUNDS) endGame();
+  else startRound();
+}
+
+function endGame() {
+  show("screen-end");
+  document.getElementById("end-theme").textContent = THEMES[game.themeId].emoji + " " + THEMES[game.themeId].name;
+  document.getElementById("final-score").textContent = game.score.toLocaleString("fr-FR");
+
+  const u = me();
+  const prev = u.best[game.themeId] || 0;
+  const isRecord = game.score > prev;
+  if (isRecord) { u.best[game.themeId] = game.score; saveMe(u); }
+  document.getElementById("new-record").style.display = isRecord && game.score > 0 ? "block" : "none";
+
+  const modeLabel = { typed: "saisie", choice: "QCM", timeout: "temps écoulé" };
+  document.getElementById("recap").innerHTML = game.results.map(r => `
+    <div class="recap-row">
+      <div class="recap-left">
+        <img src="images/${game.themeId}/${r.item.id}.jpg" alt="">
+        <div>
+          <div class="name">${r.item.name}</div>
+          <div style="color:var(--muted);font-size:11px">${r.correct ? r.time.toFixed(1) + "s · " + modeLabel[r.mode] : modeLabel[r.mode] || "manqué"}</div>
+        </div>
+      </div>
+      <div class="rpts ${r.pts === 0 ? "zero" : ""}">${r.pts.toLocaleString("fr-FR")}</div>
+    </div>
+  `).join("");
+}
+
+/* =====================================================
+   INIT
+===================================================== */
+Object.entries(THEMES).forEach(([tid, t]) =>
+  t.items.forEach(s => { const i = new Image(); i.src = `images/${tid}/${s.id}.jpg`; }));
+if (currentUser() && me()) goHome();
+</script>
+</body>
+</html>
