@@ -1,61 +1,84 @@
 # 🎯 Guessr
 
-Jeu de devinettes façon GeoGuessr, en local. 4 thèmes : **Sneakers, Moto, Montre, Voiture**.
-Une photo apparaît ultra-zoomée et floutée, elle se dévoile — plus tu réponds vite, plus tu scores.
+Jeu de devinettes façon GeoGuessr, multi-niches : **Sneakers · Montres · Motos · Voitures**.
+Une photo apparaît ultra-zoomée et floutée, elle se dévoile progressivement — plus tu réponds
+vite, plus tu scores.
 
-## Lancer le jeu
+## Lancer
 
 ```bash
 python3 -m http.server 8642 --directory "$(dirname "$0")"
 ```
 
-Puis ouvrir http://localhost:8642 (marche aussi en double-cliquant `index.html`).
+Puis http://localhost:8642. Fonctionne aussi en double-cliquant `index.html` (le contenu est
+servi via `content.js`, pas un `fetch`, justement pour rester jouable en `file://`).
+
+## Modèle
+
+Chaque thème a sa partie gratuite et sa partie payante :
+
+| | Gratuit | Premium |
+|---|---|---|
+| **Daily** | 1 défi par thème et par jour | idem |
+| **Parties illimitées** | — | ✅ |
+| **Mode Expert** | — | ✅ |
+
+Le **daily est déterministe** : tout le monde reçoit le même tirage le même jour, donc les
+scores sont comparables — c'est ce qui rend le partage intéressant. Le bouton « Partager »
+copie une grille façon Wordle :
+
+```
+Guessr 👟 Sneakers #265 — 18 420 pts
+🟩🟩🟨⬜🟩  🔥3
+```
+
+🟩 trouvé à la saisie · 🟨 trouvé au QCM · ⬜ raté
 
 ## Règles
 
-- **5 manches** par partie, **5000 pts max** par manche (plancher 800), **15 s** chrono.
-- **Phase 1 (0 → 7,5 s)** : saisie libre uniquement. Tape le nom du modèle
-  (les surnoms marchent : « aj1 », « af1 », « 2cv », « f40 », « sub »…).
-  Chaque essai raté = **−300 pts** de pénalité sur la manche.
-- **Phase 2 (7,5 s → fin)** : un QCM de **6 choix** apparaît (leurres de la même
-  marque en priorité). La saisie reste possible.
-- Mauvaise réponse au QCM ou temps écoulé = **0 pt**, la manche s'arrête.
-- Record par thème sauvegardé sur ton compte.
-
-## Comptes & Premium (démo)
-
-- **Login local** : comptes stockés dans le `localStorage` du navigateur,
-  rien ne part sur internet (le « hachage » du mot de passe est un jouet, pas de la vraie sécurité).
-- **Paywall fictif** : le thème Sneakers est gratuit ; Moto, Montre et Voiture demandent
-  « Premium ». N'importe quelle carte au bon format passe (ex : `4242 4242 4242 4242`,
-  expiration future, CVC 3 chiffres). **Aucun paiement réel, aucun échange réseau —
-  n'entre jamais une vraie carte.**
+- **5 manches**, **5000 pts max** par manche (plancher 800), **15 s** de chrono.
+- **0 → 7,5 s** : saisie libre uniquement. Le *fuzzy matching* accepte le nom complet, le nom
+  sans la marque (« countach » pour Lamborghini Countach) et tolère les fautes de frappe.
+  Chaque essai raté coûte **−300 pts**.
+- **7,5 s → 15 s** : un QCM de 6 choix apparaît (leurres de la même marque et de notoriété
+  proche). La saisie reste possible et rapporte plus.
+- Le daily entretient une **série** (🔥) tant que tu joues chaque jour.
 
 ## Contenu
 
-55 photos libres de droits (Wikimedia Commons), toutes vérifiées :
+Le pipeline (`tools/`) évite la recherche plein-texte, qui renvoie n'importe quoi — dans une
+version précédente, « Bugatti Chiron » avait ramené une photo de son moteur, et
+« Converse One Star » une boucle de ceinture médiévale. Il s'appuie sur deux sources
+structurées :
 
-| Thème | Modèles |
-|---|---|
-| 👟 Sneakers (19) | Jordan 1 & 4, AF1, SB Dunk, Air Max 1/90/97, Cortez, Blazer, Chuck Taylor, Superstar, Stan Smith, Samba, Yeezy 350, Old Skool, NB 574, Puma Suede, Reebok Classic, Gel-Lyte III |
-| 🏍️ Moto (12) | Fat Boy, Panigale, Ninja, Gold Wing, YZF-R1, R 1200 GS, Bonneville, Vespa, Duke, Hayabusa, Bullet, Indian Chief |
-| ⌚ Montre (12) | Submariner, Daytona, Speedmaster, Seamaster, Royal Oak, Nautilus, Tank, F-91W, G-Shock, Apple Watch, Swatch, Monaco |
-| 🚗 Voiture (12) | 911, F40, Countach, 2CV, New Beetle, Mini, Model S, Mustang, 205 GTI, 300 SL, DeLorean, Chiron |
+- **Wikidata** (motos, voitures) — chaque modèle est une entité typée avec sa marque (P176)
+  et son image canonique (P18). Le nombre de versions linguistiques sert de **mesure de
+  notoriété** : une voiture présente dans 40 langues est iconique, une présente dans 2 rend
+  le quiz injouable. On trie par notoriété et on coupe.
+- **Catégories Wikimedia Commons** (sneakers, montres) — mal couverts par Wikidata, mais les
+  catégories sont curées à la main. Seules les catégories **spécifiques à un modèle** sont
+  utilisées ; une catégorie de marque mélangerait les modèles et casserait le label.
 
-## Ajouter un modèle
+Cette notoriété alimente aussi les paliers : le daily pioche dans le haut du panier pour
+rester accessible, le mode Expert ouvre tout le catalogue.
 
-1. Déposer la photo dans `images/<theme>/<id>.jpg`
-2. Ajouter dans le tableau `THEMES` de `index.html` :
-   `{ id:"mon_id", name:"Nom affiché", brand:"Marque", aliases:["surnom1","surnom2"] }`
+```bash
+python3 tools/fetch_content.py          # récupère (reprend où il s'était arrêté)
+python3 tools/build_content.py          # génère content.js + élague les orphelines
+```
+
+## Limites connues
+
+- **Les sneakers sont la niche la plus pauvre en contenu libre** : Wikimedia a des milliers
+  de voitures mais seulement quelques photos par modèle de sneaker. Passer à l'échelle sur
+  cette niche demanderait une autre source (licence payante ou partenariat).
+- Le **login est une démo locale** (localStorage, hachage jouet) — ce n'est pas un système
+  d'authentification sécurisé.
+- Le **paywall est fictif** : n'importe quelle carte au bon format passe, aucun échange
+  réseau, rien n'est débité. **N'entre jamais de vraie carte bancaire.**
 
 ## Crédits images
 
-Toutes les photos proviennent de [Wikimedia Commons](https://commons.wikimedia.org) et restent
-sous leurs licences libres respectives (CC BY / CC BY-SA / domaine public selon le fichier).
-Projet de démo sans usage commercial.
-
-## Pistes v3
-
-- Classement multi-joueurs (nécessite un vrai backend)
-- Streaks / multiplicateurs, mode chrono global
-- Indices payants (dévoiler la marque contre des points)
+Photos issues de [Wikimedia Commons](https://commons.wikimedia.org), sous leurs licences
+respectives. L'auteur et la licence de **chaque image** sont listés dans le jeu
+(bouton « Crédits & licences ») — c'est ce qu'exige CC-BY.
