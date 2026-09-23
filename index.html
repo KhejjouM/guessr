@@ -159,19 +159,27 @@
 <body>
 
 <!-- ============ AUTH ============ -->
-<div class="screen active" id="screen-auth" style="text-align:center">
+<div class="screen" id="screen-auth" style="text-align:center">
   <div class="logo">GUESSR</div>
   <div class="tagline">Un défi par jour, gratuit. Sneakers · Montres · Motos · Voitures.</div>
   <div class="auth-box">
-    <h2>Connexion</h2>
+    <h2>Garde ta progression</h2>
+    <div class="fineprint" style="margin:0 0 16px">
+      Pas obligatoire : tu peux jouer sans compte. Un pseudo te permet juste de garder
+      tes séries et tes records si tu partages ce navigateur.
+    </div>
     <div class="field"><label for="auth-user">Pseudo</label><input id="auth-user" autocomplete="off" maxlength="20"></div>
     <div class="field"><label for="auth-pass">Mot de passe</label><input id="auth-pass" type="password" maxlength="64"></div>
     <div class="auth-error" id="auth-error"></div>
-    <div style="display:flex;gap:10px">
-      <button class="btn" onclick="login()">Se connecter</button>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn secondary" onclick="signup()">Créer un compte</button>
+      <button class="btn secondary" onclick="login()">Se connecter</button>
     </div>
-    <div class="fineprint">Démo locale : les comptes sont stockés dans ton navigateur, rien ne part sur internet.</div>
+    <div style="margin-top:14px"><button class="btn" style="width:100%" onclick="goHome()">← Jouer sans compte</button></div>
+    <div class="fineprint">
+      Démo locale : les comptes sont stockés dans ton navigateur, rien ne part sur internet.
+      N'utilise pas un mot de passe qui te sert ailleurs.
+    </div>
   </div>
 </div>
 
@@ -181,7 +189,7 @@
     <div class="logo" style="font-size:34px">GUESSR</div>
     <div class="user-chip">
       <span>👤 <b id="chip-user"></b> <span class="prem" id="chip-prem"></span></span>
-      <button class="linkbtn" onclick="logout()">déconnexion</button>
+      <button class="linkbtn" id="chip-action">créer un compte</button>
     </div>
   </div>
   <div class="tagline">Chaque thème a son défi du jour — même tirage pour tout le monde, gratuit. Tape ta réponse avant l'apparition du QCM pour scorer plus. 🔥</div>

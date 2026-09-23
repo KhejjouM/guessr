@@ -121,6 +121,20 @@ function toyHash(s) { // hachage jouet : démo locale, PAS de la vraie sécurit�
 function currentUser() { return localStorage.getItem("guessr_session"); }
 function me() { return usersDB()[currentUser()]; }
 function saveMe(u) { const db = usersDB(); db[currentUser()] = u; saveUsers(db); }
+
+/* On arrive par un lien partagé : demander un compte avant d'avoir vu le jeu tuerait
+   la seule boucle qui compte. On joue donc en invité par défaut, et créer un compte
+   plus tard récupère la progression. */
+const GUEST = "__invite__";
+function ensureSession() {
+  if (currentUser() && me()) return;
+  const db = usersDB();
+  if (!db[GUEST]) db[GUEST] = { pass: null, premium: false, themes: {}, guest: true };
+  saveUsers(db);
+  localStorage.setItem("guessr_session", GUEST);
+}
+function isGuest() { return currentUser() === GUEST; }
+function displayName() { return isGuest() ? "Invité" : currentUser(); }
 function themeState(u, themeId) {
   u.themes = u.themes || {};
   u.themes[themeId] = u.themes[themeId] || { best: 0, streak: 0, lastDaily: null, dailyDone: {} };
@@ -448,15 +462,17 @@ function show(id) {
 
 function goHome() {
   cancelAnimationFrame(rafId);
-  if (!currentUser() || !me()) { show("screen-auth"); return; }
+  ensureSession();
   renderHome();
   show("screen-home");
 }
 
 function renderHome() {
   const u = me();
-  document.getElementById("chip-user").textContent = currentUser();
+  document.getElementById("chip-user").textContent = displayName();
   document.getElementById("chip-prem").textContent = u.premium ? "· ✨ Premium" : "";
+  document.getElementById("chip-action").textContent = isGuest() ? "créer un compte" : "déconnexion";
+  document.getElementById("chip-action").onclick = isGuest() ? showAuth : logout;
   const date = todayStr();
   const wrap = document.getElementById("themes");
   wrap.innerHTML = "";
@@ -505,11 +521,16 @@ function authFields() {
   if (pass.length < 4) { err.textContent = "Mot de passe : 4 caractères minimum."; return null; }
   return { user, pass, err };
 }
+function showAuth() { document.getElementById("auth-error").textContent = ""; show("screen-auth"); }
+
 function signup() {
   const f = authFields(); if (!f) return;
   const db = usersDB();
   if (db[f.user]) { f.err.textContent = "Ce pseudo existe déjà — connecte-toi."; return; }
-  db[f.user] = { pass: toyHash(f.pass), premium: false, themes: {} };
+  // on récupère la progression faite en invité plutôt que de la jeter
+  const carried = (db[GUEST] && db[GUEST].themes) || {};
+  db[f.user] = { pass: toyHash(f.pass), premium: !!(db[GUEST] && db[GUEST].premium), themes: carried };
+  if (db[GUEST]) db[GUEST] = { pass: null, premium: false, themes: {}, guest: true };
   saveUsers(db);
   localStorage.setItem("guessr_session", f.user);
   goHome();
@@ -525,7 +546,7 @@ function login() {
 function logout() {
   localStorage.removeItem("guessr_session");
   document.getElementById("auth-pass").value = "";
-  show("screen-auth");
+  goHome();   // on retombe en invité : on ne bloque jamais l'accès au jeu
 }
 
 /* ------------------------------------------------------ paywall (fictif) */
@@ -592,4 +613,4 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") { closePaywall(); closeCredits(); }
 });
 
-if (currentUser() && me()) goHome(); else show("screen-auth");
+goHome();
