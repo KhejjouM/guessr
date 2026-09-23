@@ -67,6 +67,17 @@ python3 tools/fetch_content.py          # récupère (reprend où il s'était ar
 python3 tools/build_content.py          # génère content.js + élague les orphelines
 ```
 
+## Héberger / mettre à jour
+
+Le jeu est publié via **GitHub Pages** (branche `main`, racine) :
+👉 **https://khejjoum.github.io/guessr/**
+
+Un `git push` sur `main` redéploie automatiquement (build ~1 min, puis propagation CDN).
+
+⚠️ **Si tu modifies `game.js` ou `content.js`, incrémente le `?v=` des deux balises
+`<script>` dans `index.html`.** Sans ça, les visiteurs déjà venus gardent l'ancien code
+en cache et ne voient jamais la mise à jour.
+
 ## Limites connues
 
 - **Les sneakers sont la niche la plus pauvre en contenu libre** : Wikimedia a des milliers

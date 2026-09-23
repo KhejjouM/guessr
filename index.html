@@ -282,7 +282,10 @@
   </div>
 </div>
 
-<script src="content.js"></script>
-<script src="game.js"></script>
+<!-- Le ?v= est indispensable : sans lui, un visiteur déjà venu garde en cache
+     l'ancien game.js et ne voit jamais les mises à jour. À incrémenter à chaque
+     déploiement qui touche game.js ou content.js. -->
+<script src="content.js?v=4"></script>
+<script src="game.js?v=4"></script>
 </body>
 </html>
