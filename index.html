@@ -161,7 +161,7 @@
 <!-- ============ AUTH ============ -->
 <div class="screen" id="screen-auth" style="text-align:center">
   <div class="logo">GUESSR</div>
-  <div class="tagline">Un défi par jour, gratuit. Sneakers · Montres · Motos · Voitures.</div>
+  <div class="tagline">Un défi par jour, gratuit. Sneakers · Montres · Motos · Voitures · Métro.</div>
   <div class="auth-box">
     <h2>Garde ta progression</h2>
     <div class="fineprint" style="margin:0 0 16px">
@@ -276,7 +276,12 @@
 <div class="modal-backdrop" id="credits">
   <div class="modal">
     <h2>Crédits & licences</h2>
-    <div class="fineprint">Toutes les photos viennent de Wikimedia Commons et restent sous leurs licences respectives. Auteur et licence de chaque image ci-dessous.</div>
+    <div class="fineprint">
+      Les photos viennent de Wikimedia Commons et restent sous leurs licences respectives —
+      auteur et licence de chaque image ci-dessous. Les tracés de métro sont générés à partir
+      des données <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>,
+      © contributeurs OpenStreetMap, sous licence ODbL.
+    </div>
     <div id="credits-list"></div>
     <div class="modal-actions"><button class="btn secondary" onclick="closeCredits()">Fermer</button></div>
   </div>
@@ -285,7 +290,7 @@
 <!-- Le ?v= est indispensable : sans lui, un visiteur déjà venu garde en cache
      l'ancien game.js et ne voit jamais les mises à jour. À incrémenter à chaque
      déploiement qui touche game.js ou content.js. -->
-<script src="content.js?v=4"></script>
-<script src="game.js?v=4"></script>
+<script src="content.js?v=5"></script>
+<script src="game.js?v=5"></script>
 </body>
 </html>

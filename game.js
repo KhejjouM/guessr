@@ -12,7 +12,24 @@ const THEME_META = {
   montre:   { name: "Montres",  emoji: "⌚" },
   moto:     { name: "Motos",    emoji: "🏍️" },
   voiture:  { name: "Voitures", emoji: "🚗" },
+  metro:    { name: "Métro",    emoji: "🚇", ask: "Quelle ville ?", unit: "villes" },
 };
+
+/* Comment l'image se dévoile.
+   Pour un objet photographié, le flou initial est le bon levier. Pour un plan de métro,
+   non : des lignes fines sur fond sombre, floutées, ne donnent qu'un écran noir — c'est
+   frustrant, pas difficile. Ce qui identifie une ville, c'est la forme du réseau, donc
+   on joue sur le ZOOM : d'abord un fragment (couleurs, densité, entrelacs), puis la
+   silhouette complète. Le flou reste léger et se lève vite. */
+const REVEAL = {
+  default: { zoom0: 3.5, zoom1: 1, blur0: 7, sharpAt: 4, fit: "cover",
+             frame: "clamp(180px, 38vh, 400px)" },
+  // cadre plus haut : un réseau de forme verticale dans un cadre horizontal se
+  // retrouverait minuscule entre deux bandes noires
+  metro:   { zoom0: 3.2, zoom1: 1, blur0: 3, sharpAt: 3, fit: "contain",
+             frame: "clamp(260px, 58vh, 560px)" },
+};
+const revealFor = t => REVEAL[t] || REVEAL.default;
 
 const ROUNDS = 5;
 const ROUND_TIME = 15;
@@ -145,6 +162,10 @@ function themeState(u, themeId) {
 
 function itemsFor(themeId) { return CONTENT[themeId] || []; }
 
+/* Les plans de métro sont générés en SVG (net à tous les zooms et bien plus léger
+   qu'une image matricielle) ; les autres thèmes sont des photos JPEG. */
+function imgPath(themeId, item) { return `images/${themeId}/${item.id}.${item.ext || "jpg"}`; }
+
 /* Un même modèle peut avoir plusieurs photos : on ne doit jamais proposer deux fois
    le même nom dans une partie ni dans un QCM. */
 function dedupeByName(items) {
@@ -218,12 +239,16 @@ function startRound() {
   document.getElementById("guess-row").style.display = "flex";
   const input = document.getElementById("guess-input");
   input.value = ""; input.disabled = false;
+  input.placeholder = THEME_META[game.themeId].ask || "Tape ta réponse…";
   setTimeout(() => input.focus(), 50);
 
+  const rv = revealFor(game.themeId);
   const img = document.getElementById("photo");
-  img.src = `images/${game.themeId}/${s.id}.jpg`;
-  img.style.transform = "scale(3.5)";
-  img.style.filter = "blur(7px) saturate(.5)";
+  document.querySelector(".photo-frame").style.height = rv.frame;
+  img.src = imgPath(game.themeId, s);
+  img.style.objectFit = rv.fit;
+  img.style.transform = `scale(${rv.zoom0})`;
+  img.style.filter = `blur(${rv.blur0}px) saturate(.5)`;
   img.style.transformOrigin = `${game.origins[game.round][0]}% ${game.origins[game.round][1]}%`;
 
   const choicesEl = document.getElementById("choices");
@@ -260,9 +285,10 @@ function tick() {
   const remaining = Math.max(0, ROUND_TIME - elapsed);
 
   const reveal = Math.min(1, elapsed / REVEAL_TIME);
+  const rv = revealFor(game.themeId);
   const img = document.getElementById("photo");
-  img.style.transform = `scale(${(3.5 - 2.5 * reveal).toFixed(3)})`;
-  img.style.filter = `blur(${(7 * (1 - Math.min(1, elapsed / 4))).toFixed(1)}px) saturate(${(0.5 + 0.5 * reveal).toFixed(2)})`;
+  img.style.transform = `scale(${(rv.zoom0 - (rv.zoom0 - rv.zoom1) * reveal).toFixed(3)})`;
+  img.style.filter = `blur(${(rv.blur0 * (1 - Math.min(1, elapsed / rv.sharpAt))).toFixed(1)}px) saturate(${(0.5 + 0.5 * reveal).toFixed(2)})`;
 
   const timerEl = document.getElementById("timer-value");
   timerEl.textContent = remaining.toFixed(1);
@@ -433,7 +459,7 @@ function endGame() {
   document.getElementById("recap").innerHTML = game.results.map(r => `
     <div class="recap-row">
       <div class="recap-left">
-        <img src="images/${game.themeId}/${r.item.id}.jpg" alt="">
+        <img src="${imgPath(game.themeId, r.item)}" alt="">
         <div>
           <div class="name">${r.item.name}</div>
           <div class="sub">${r.item.brand} · ${r.correct ? r.time.toFixed(1) + "s · " + modeLabel[r.mode] : modeLabel[r.mode]}</div>
@@ -489,7 +515,7 @@ function renderHome() {
         <div class="theme-emoji">${meta.emoji}</div>
         <div>
           <div class="theme-name">${meta.name}</div>
-          <div class="theme-desc">${n} modèles${st.best ? " · record " + st.best.toLocaleString("fr-FR") : ""}${st.streak > 1 ? " · 🔥" + st.streak : ""}</div>
+          <div class="theme-desc">${n} ${meta.unit || "modèles"}${st.best ? " · record " + st.best.toLocaleString("fr-FR") : ""}${st.streak > 1 ? " · 🔥" + st.streak : ""}</div>
         </div>
       </div>
       <div class="theme-actions">

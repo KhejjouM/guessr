@@ -4086,5 +4086,319 @@
     "source": "https://commons.wikimedia.org/wiki/File:Peugeot%20407%2C%20Ireland%20%289119796666%29.jpg"
    }
   }
+ ],
+ "metro": [
+  {
+   "id": "paris",
+   "name": "Paris",
+   "brand": "France",
+   "fame": 99,
+   "ext": "svg",
+   "credit": {
+    "file": "paris.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "londres",
+   "name": "Londres",
+   "brand": "Royaume-Uni",
+   "fame": 98,
+   "ext": "svg",
+   "credit": {
+    "file": "londres.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "new_york",
+   "name": "New York",
+   "brand": "États-Unis",
+   "fame": 97,
+   "ext": "svg",
+   "credit": {
+    "file": "new_york.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "tokyo",
+   "name": "Tokyo",
+   "brand": "Japon",
+   "fame": 95,
+   "ext": "svg",
+   "credit": {
+    "file": "tokyo.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "moscou",
+   "name": "Moscou",
+   "brand": "Russie",
+   "fame": 94,
+   "ext": "svg",
+   "credit": {
+    "file": "moscou.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "berlin",
+   "name": "Berlin",
+   "brand": "Allemagne",
+   "fame": 92,
+   "ext": "svg",
+   "credit": {
+    "file": "berlin.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "madrid",
+   "name": "Madrid",
+   "brand": "Espagne",
+   "fame": 90,
+   "ext": "svg",
+   "credit": {
+    "file": "madrid.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "barcelone",
+   "name": "Barcelone",
+   "brand": "Espagne",
+   "fame": 89,
+   "ext": "svg",
+   "credit": {
+    "file": "barcelone.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "seoul",
+   "name": "Séoul",
+   "brand": "Corée du Sud",
+   "fame": 87,
+   "ext": "svg",
+   "credit": {
+    "file": "seoul.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "mexico",
+   "name": "Mexico",
+   "brand": "Mexique",
+   "fame": 85,
+   "ext": "svg",
+   "credit": {
+    "file": "mexico.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "shanghai",
+   "name": "Shanghai",
+   "brand": "Chine",
+   "fame": 84,
+   "ext": "svg",
+   "credit": {
+    "file": "shanghai.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "hong_kong",
+   "name": "Hong Kong",
+   "brand": "Chine",
+   "fame": 81,
+   "ext": "svg",
+   "credit": {
+    "file": "hong_kong.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "singapour",
+   "name": "Singapour",
+   "brand": "Singapour",
+   "fame": 80,
+   "ext": "svg",
+   "credit": {
+    "file": "singapour.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "chicago",
+   "name": "Chicago",
+   "brand": "États-Unis",
+   "fame": 77,
+   "ext": "svg",
+   "credit": {
+    "file": "chicago.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "washington",
+   "name": "Washington",
+   "brand": "États-Unis",
+   "fame": 76,
+   "ext": "svg",
+   "credit": {
+    "file": "washington.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "rome",
+   "name": "Rome",
+   "brand": "Italie",
+   "fame": 75,
+   "ext": "svg",
+   "credit": {
+    "file": "rome.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "milan",
+   "name": "Milan",
+   "brand": "Italie",
+   "fame": 74,
+   "ext": "svg",
+   "credit": {
+    "file": "milan.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "vienne",
+   "name": "Vienne",
+   "brand": "Autriche",
+   "fame": 72,
+   "ext": "svg",
+   "credit": {
+    "file": "vienne.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "lisbonne",
+   "name": "Lisbonne",
+   "brand": "Portugal",
+   "fame": 71,
+   "ext": "svg",
+   "credit": {
+    "file": "lisbonne.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "amsterdam",
+   "name": "Amsterdam",
+   "brand": "Pays-Bas",
+   "fame": 70,
+   "ext": "svg",
+   "credit": {
+    "file": "amsterdam.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "bruxelles",
+   "name": "Bruxelles",
+   "brand": "Belgique",
+   "fame": 69,
+   "ext": "svg",
+   "credit": {
+    "file": "bruxelles.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "munich",
+   "name": "Munich",
+   "brand": "Allemagne",
+   "fame": 68,
+   "ext": "svg",
+   "credit": {
+    "file": "munich.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "prague",
+   "name": "Prague",
+   "brand": "Tchéquie",
+   "fame": 66,
+   "ext": "svg",
+   "credit": {
+    "file": "prague.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  },
+  {
+   "id": "athenes",
+   "name": "Athènes",
+   "brand": "Grèce",
+   "fame": 65,
+   "ext": "svg",
+   "credit": {
+    "file": "athenes.svg",
+    "author": "Tracé généré à partir des données OpenStreetMap",
+    "license": "ODbL — © contributeurs OpenStreetMap",
+    "source": "https://www.openstreetmap.org/copyright"
+   }
+  }
  ]
 }

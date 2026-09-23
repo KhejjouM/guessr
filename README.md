@@ -44,6 +44,29 @@ Guessr 👟 Sneakers #265 — 18 420 pts
   proche). La saisie reste possible et rapporte plus.
 - Le daily entretient une **série** (🔥) tant que tu joues chaque jour.
 
+## Le thème Métro : des tracés générés, pas des plans récupérés
+
+Tous les plans de métro existants portent les noms des stations — et « Châtelet » ou
+« Times Square » donnent la ville en une seconde. Récupérer des images était donc une
+impasse.
+
+`tools/fetch_metro.py` **dessine les réseaux** à partir des géométries OpenStreetMap
+(`route=subway` via Overpass) : aucun texte par construction, les couleurs officielles
+de chaque ligne, et un style homogène d'une ville à l'autre. Sortie en SVG — net à tous
+les zooms et bien plus léger qu'une image matricielle.
+
+Quelques détails qui comptent pour la jouabilité :
+
+- **Cadrage à la forme du réseau** : un viewBox carré laisserait un réseau large comme
+  Londres flotter entre deux bandes vides.
+- **Contraste minimum** : la Northern Line est officiellement noire, donc invisible sur
+  fond sombre — les couleurs trop sombres sont éclaircies.
+- **Tronçons orphelins filtrés** : OSM contient des bouts de voie isolés qui étiraient
+  le cadrage et rétrécissaient le réseau utile.
+- **Dévoilement par le zoom, pas par le flou** : flouter des lignes fines sur fond sombre
+  ne donne qu'un écran noir. On part donc d'un fragment du réseau et on dézoome vers la
+  silhouette complète.
+
 ## Contenu
 
 Le pipeline (`tools/`) évite la recherche plein-texte, qui renvoie n'importe quoi — dans une
@@ -88,8 +111,11 @@ en cache et ne voient jamais la mise à jour.
 - Le **paywall est fictif** : n'importe quelle carte au bon format passe, aucun échange
   réseau, rien n'est débité. **N'entre jamais de vraie carte bancaire.**
 
-## Crédits images
+## Crédits
 
-Photos issues de [Wikimedia Commons](https://commons.wikimedia.org), sous leurs licences
-respectives. L'auteur et la licence de **chaque image** sont listés dans le jeu
-(bouton « Crédits & licences ») — c'est ce qu'exige CC-BY.
+- **Photos** : [Wikimedia Commons](https://commons.wikimedia.org), sous leurs licences
+  respectives. L'auteur et la licence de **chaque image** sont listés dans le jeu
+  (bouton « Crédits & licences ») — c'est ce qu'exige CC-BY.
+- **Tracés de métro** : générés à partir des données
+  [OpenStreetMap](https://www.openstreetmap.org/copyright), © contributeurs OpenStreetMap,
+  sous licence ODbL.

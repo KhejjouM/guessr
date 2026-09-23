@@ -22,8 +22,8 @@ clean, referenced = {}, set()
 for theme, items in content.items():
     kept = []
     for it in items:
-        path = os.path.join(IMG_DIR, theme, it["id"] + ".jpg")
-        if os.path.exists(path) and os.path.getsize(path) > 5000:
+        path = os.path.join(IMG_DIR, theme, it["id"] + "." + it.get("ext", "jpg"))
+        if os.path.exists(path) and os.path.getsize(path) > 2000:
             kept.append(it)
             referenced.add(os.path.relpath(path, ROOT))
         else:
@@ -31,11 +31,12 @@ for theme, items in content.items():
     if kept:
         clean[theme] = kept
 
-# élagage des images orphelines
+# Élagage des images orphelines, thème par thème. On ignore les dossiers absents de
+# content.json : ce sont des thèmes en cours de génération, pas des orphelins.
 removed = 0
 for theme in os.listdir(IMG_DIR):
     tdir = os.path.join(IMG_DIR, theme)
-    if not os.path.isdir(tdir):
+    if not os.path.isdir(tdir) or theme not in content:
         continue
     for fn in os.listdir(tdir):
         rel = os.path.relpath(os.path.join(tdir, fn), ROOT)
