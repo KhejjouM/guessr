@@ -536,6 +536,18 @@ function openPaywall() {
 }
 function closePaywall() { document.getElementById("paywall").classList.remove("open"); }
 
+/* Le jeu est hébergé publiquement : un formulaire de carte a la même forme qu'une page
+   de phishing. On met donc la carte de test à un clic, pour que personne n'ait de raison
+   de saisir de vrais chiffres. 4242… est le numéro de test universel (Stripe), invalide
+   pour un vrai paiement. */
+function fillTestCard() {
+  document.getElementById("pay-name").value = "CARTE DE TEST";
+  document.getElementById("pay-card").value = "4242 4242 4242 4242";
+  document.getElementById("pay-exp").value = "12/30";
+  document.getElementById("pay-cvc").value = "123";
+  document.getElementById("pay-error").textContent = "";
+}
+
 function pay() {
   const name = document.getElementById("pay-name").value.trim();
   const card = document.getElementById("pay-card").value.replace(/[\s-]/g, "");

@@ -237,12 +237,19 @@
   <div class="modal">
     <h2>✨ Guessr Premium</h2>
     <div class="price">4,99 € <small>/ mois</small></div>
-    <div class="demo-note">🧪 DÉMO — paiement fictif. Aucune carte n'est débitée, rien n'est envoyé sur internet. N'entre PAS de vraie carte bancaire.</div>
+    <div class="demo-note">
+      🧪 <b>DÉMO — ce n'est pas un vrai paiement.</b><br>
+      Rien n'est débité, rien n'est envoyé sur internet : tout reste dans ton navigateur.
+      <b>N'entre jamais de vraie carte bancaire ici</b> — utilise le bouton ci-dessous.
+    </div>
     <div class="perks">
       ♾️ <b>Parties illimitées</b> dans les 4 thèmes<br>
       🎯 <b>Mode Expert</b> — tout le catalogue, y compris les modèles rares<br>
       🔥 Le daily gratuit reste gratuit, pour tout le monde
     </div>
+    <button class="btn secondary" style="width:100%;margin-bottom:14px" onclick="fillTestCard()">
+      ⚡ Remplir avec la carte de test
+    </button>
     <div class="field"><label for="pay-name">Nom sur la carte</label><input id="pay-name" autocomplete="off" placeholder="JEAN GUESSR"></div>
     <div class="field"><label for="pay-card">Numéro de carte (fictif)</label><input id="pay-card" autocomplete="off" inputmode="numeric" placeholder="4242 4242 4242 4242" maxlength="23"></div>
     <div class="card-row">
